@@ -1,0 +1,205 @@
+# Students Expense Tracker App Documentation
+
+## Overview
+The Students Expense Tracker App is a mobile application designed to help young students manage and track their shared expenses effectively. The app allows users to create groups with their contacts, record expenses, split bills, and keep track of who owes whom.
+
+## Core Features
+
+### User Authentication
+- Sign up and login functionality
+- User profile management
+- Authentication persistence
+
+### Groups Management
+- Create expense-sharing groups
+- Add members via phone contacts
+- Add members via email
+- Update group details
+- Remove members from groups
+- Leave groups
+
+### Expense Management
+- Add expenses with details (amount, purpose, paid by)
+- Automatic splitting of expenses among group members
+- Record who paid and who owes
+- Update or delete expenses
+- View expense history
+
+### Settlement
+- View balances within each group
+- See who owes whom and how much
+- Mark settlements as complete
+- Settlement history
+
+### Communication
+- In-app text chat within groups
+- Notifications for new expenses and settlements
+
+### Offline Functionality
+- Access and interact with the app without internet connection
+- Sync data when connection is restored
+
+## User Flows
+
+### Group Creation Flow
+1. User logs in to the app
+2. User navigates to the Groups screen
+3. User taps "Create Group" button
+4. User enters group name and description
+5. User selects contacts from phone or enters email addresses
+6. User confirms to create the group
+7. Group is created and members are invited
+
+### Expense Addition Flow
+1. User navigates to a specific group
+2. User taps "Add Expense" button
+3. User enters expense details (amount, description, date)
+4. User selects who paid for the expense
+5. User selects who should share the expense (default: all members equally)
+6. User confirms to add the expense
+7. Expense is added and balances are updated
+
+### Settlement Flow
+1. User navigates to balances section within a group
+2. User views who they owe money to or who owes them
+3. User selects a balance to settle
+4. User marks the balance as settled
+5. System updates the balances
+
+## Technical Specifications
+
+### Frontend
+- React Native with Expo framework
+- Expo Router for navigation
+- Redux for state management
+- AsyncStorage for local data persistence
+- UI libraries: React Native Paper or NativeBase
+
+### Backend
+- Firebase Authentication for user management
+- Firebase Firestore for database
+- Firebase Cloud Functions for complex operations
+- Firebase Cloud Messaging for notifications
+
+### Offline Support
+- Local database synchronization
+- Queue system for pending operations
+- Conflict resolution strategy
+
+## Data Models
+
+### User
+```
+{
+  id: string,
+  name: string,
+  email: string,
+  phone: string,
+  photoURL: string,
+  createdAt: timestamp,
+  updatedAt: timestamp
+}
+```
+
+### Group
+```
+{
+  id: string,
+  name: string,
+  description: string,
+  members: [
+    {
+      userId: string,
+      name: string,
+      email: string,
+      phone: string,
+      isAdmin: boolean,
+      joinedAt: timestamp
+    }
+  ],
+  createdBy: string,
+  createdAt: timestamp,
+  updatedAt: timestamp
+}
+```
+
+### Expense
+```
+{
+  id: string,
+  groupId: string,
+  amount: number,
+  description: string,
+  paidBy: string,
+  splitBetween: [
+    {
+      userId: string,
+      amount: number
+    }
+  ],
+  date: timestamp,
+  createdAt: timestamp,
+  updatedAt: timestamp
+}
+```
+
+### Transaction
+```
+{
+  id: string,
+  groupId: string,
+  fromUser: string,
+  toUser: string,
+  amount: number,
+  relatedExpense: string,
+  status: 'pending' | 'completed',
+  completedAt: timestamp,
+  createdAt: timestamp,
+  updatedAt: timestamp
+}
+```
+
+### Message
+```
+{
+  id: string,
+  groupId: string,
+  userId: string,
+  text: string,
+  createdAt: timestamp
+}
+```
+
+## Phase Implementation Plan
+
+### Phase 1: Basic Setup and Authentication
+- Project setup with Expo Router
+- Firebase integration
+- Authentication screens and logic
+- Basic navigation structure
+
+### Phase 2: Groups Management
+- Create, view, update, delete groups
+- Add/remove members functionality
+- Group details screen
+
+### Phase 3: Expense Management
+- Add expenses functionality
+- Split algorithms implementation
+- Expense details and history views
+
+### Phase 4: Balances and Settlements
+- Calculate and display balances
+- Settlement functionality
+- Transaction history
+
+### Phase 5: Chat and Notifications
+- In-group chat functionality
+- Push notifications setup
+- Activity feed
+
+### Phase 6: Offline Support and Optimization
+- Offline data access implementation
+- Synchronization logic
+- Performance optimizations
+- Edge case handling
