@@ -22,19 +22,6 @@ export default function LoginScreen() {
   const [loading, setLoading] = useState(false);
   const [showPassword, setShowPassword] = useState(false);
 
-  useEffect(() => {
-    // Check if user is already logged in
-    // const unsubscribe = onAuthStateChanged(auth, (user:any) => {
-    //   console.log('User state changed:', user?.currentUser);
-    //   if(user){
-    //     router.replace("./(tabs)");
-    //   }
-    // });
-
-    // Cleanup subscription
-    // return unsubscribe;
-  }, []);
-
   const handleLogin = async () => {
     if (!email.trim() || !password.trim()) {
       Alert.alert('Error', 'Please enter both email and password');

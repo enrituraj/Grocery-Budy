@@ -50,7 +50,6 @@ export default function Chat({ groupId, members }: ChatProps) {
   const flatListRef = useRef<FlatList>(null);
   const user = auth.currentUser;
 
-  // Load messages from Firestore
   useEffect(() => {
     if (!groupId || !user) return;
 
@@ -72,7 +71,6 @@ export default function Chat({ groupId, members }: ChatProps) {
       setMessages(messageData);
       setLoading(false);
       
-      // Scroll to bottom when new messages come in
       setTimeout(() => {
         if (flatListRef.current && messageData.length > 0) {
           flatListRef.current.scrollToEnd({ animated: true });
@@ -87,7 +85,6 @@ export default function Chat({ groupId, members }: ChatProps) {
     return () => unsubscribe();
   }, [groupId]);
 
-  // Send message
   const sendMessage = async () => {
     if (!inputMessage.trim() || !user || !groupId) return;
 
@@ -110,12 +107,10 @@ export default function Chat({ groupId, members }: ChatProps) {
     }
   };
 
-  // Format timestamp
   const formatTimestamp = (timestamp: Date) => {
     return timestamp.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' });
   };
 
-  // Render message item
   const renderMessage = ({ item }: { item: Message }) => {
     const isCurrentUser = item.senderId === user?.uid;
     

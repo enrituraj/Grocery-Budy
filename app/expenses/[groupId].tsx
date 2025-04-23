@@ -82,10 +82,8 @@ interface Settlement {
 }
 
 export default function ExpensesScreen() {
-  // Get group ID from URL params
   const { groupId } = useLocalSearchParams<{ groupId: string }>();
 
-  // State variables
   const [group, setGroup] = useState<Group | null>(null);
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [summaries, setSummaries] = useState<ExpenseSummary[]>([]);
@@ -102,7 +100,6 @@ export default function ExpensesScreen() {
     splitType: 'equal' as 'equal' | 'custom',
   });
 
-  // Current user from Firebase auth
   const user = auth.currentUser;
   const currentUser = {
     id: user?.uid || '',
@@ -111,7 +108,6 @@ export default function ExpensesScreen() {
     phone: user?.phoneNumber || ''
   };
 
-  // Load group and expenses data
   useEffect(() => {
     if (groupId) {
       loadGroup();
@@ -119,14 +115,12 @@ export default function ExpensesScreen() {
     }
   }, [groupId]);
 
-  // Calculate expense summaries and settlements
   useEffect(() => {
     if (group && expenses.length > 0) {
       calculateSummaries();
     }
   }, [group, expenses]);
 
-  // Load group data from Firestore
   const loadGroup = async () => {
     try {
       setLoading(true);
@@ -156,7 +150,6 @@ export default function ExpensesScreen() {
     }
   };
 
-  // Load expenses from Firestore
   const loadExpenses = async () => {
     try {
       setLoading(true);
@@ -191,7 +184,6 @@ export default function ExpensesScreen() {
     }
   };
 
-  // Calculate expense summaries for each member
   const calculateSummaries = () => {
     if (!group) return;
 
@@ -203,27 +195,22 @@ export default function ExpensesScreen() {
       balance: 0
     }));
 
-    // Calculate totals for each expense
     expenses.forEach(expense => {
-      // Find the member who paid
       const payerSummary = memberSummaries.find(s => s.userId === expense.paidBy);
       if (payerSummary) {
         payerSummary.totalPaid += expense.amount;
       }
 
       if (expense.splitType === 'equal') {
-        // Equal split
         const splitAmount = expense.amount / group.members.length;
         memberSummaries.forEach(summary => {
           summary.totalOwed += splitAmount;
         });
-        // The payer doesn't owe themselves
         const payer = memberSummaries.find(s => s.userId === expense.paidBy);
         if (payer) {
           payer.totalOwed -= splitAmount;
         }
       } else if (expense.splitDetails && expense.splitDetails.length > 0) {
-        // Custom split
         expense.splitDetails.forEach(split => {
           const memberSummary = memberSummaries.find(s => s.userId === split.userId);
           if (memberSummary) {
@@ -233,37 +220,30 @@ export default function ExpensesScreen() {
       }
     });
 
-    // Calculate final balances
     memberSummaries.forEach(summary => {
       summary.balance = summary.totalPaid - summary.totalOwed;
     });
 
     setSummaries(memberSummaries);
     
-    // Calculate settlements (who pays whom)
     calculateSettlements(memberSummaries);
   };
 
-  // Calculate settlements (who needs to pay whom to balance everything)
   const calculateSettlements = (memberSummaries: ExpenseSummary[]) => {
     const settlements: Settlement[] = [];
     
-    // Make a copy to work with
     const members = [...memberSummaries];
     
-    // Separate positive (receives money) and negative (owes money) balances
     const positiveBalances = members.filter(m => m.balance > 0)
-      .sort((a, b) => b.balance - a.balance); // Descending order
+      .sort((a, b) => b.balance - a.balance); 
     
     const negativeBalances = members.filter(m => m.balance < 0)
-      .sort((a, b) => a.balance - b.balance); // Ascending order (most negative first)
+      .sort((a, b) => a.balance - b.balance); 
     
-    // Match payers with receivers
     while (negativeBalances.length > 0 && positiveBalances.length > 0) {
       const payer = negativeBalances[0];
       const receiver = positiveBalances[0];
       
-      // Calculate how much can be settled in this transaction
       const amount = Math.min(Math.abs(payer.balance), receiver.balance);
       
       if (amount > 0) {
@@ -275,12 +255,10 @@ export default function ExpensesScreen() {
           amount: amount
         });
       
-        // Update the balances
         payer.balance += amount;
         receiver.balance -= amount;
       }
       
-      // Remove members with zero balance from the lists
       if (Math.abs(payer.balance) < 0.01) {
         negativeBalances.shift();
       }
@@ -293,7 +271,6 @@ export default function ExpensesScreen() {
     setSettlements(settlements);
   };
 
-  // Add a new expense to Firestore
   const addExpense = async () => {
     if (!group) return;
     
@@ -323,8 +300,6 @@ export default function ExpensesScreen() {
       };
       
       if (newExpense.splitType === 'custom') {
-        // In a real app, you would implement a UI for custom splits
-        // For now, we'll just create an equal split
         expenseData.splitDetails = group.members
           .filter(member => member.userId !== paidBy)
           .map(member => ({
@@ -336,7 +311,6 @@ export default function ExpensesScreen() {
       const expensesRef = collection(db, 'expenses');
       const docRef = await addDoc(expensesRef, expenseData);
       
-      // Add ID to the expense and update state
       const newExpenseWithId: Expense = {
         id: docRef.id,
         ...expenseData,
@@ -347,7 +321,6 @@ export default function ExpensesScreen() {
       
       setExpenses([...expenses, newExpenseWithId]);
       
-      // Reset form
       setNewExpense({
         description: '',
         amount: '',
@@ -362,7 +335,6 @@ export default function ExpensesScreen() {
     }
   };
 
-  // Delete expense from Firestore
   const deleteExpense = async (expenseId: string) => {
     Alert.alert(
       'Delete Expense',
@@ -391,19 +363,16 @@ export default function ExpensesScreen() {
     );
   };
 
-  // Format currency
   const formatCurrency = (amount: number) => {
     return `$${amount.toFixed(2)}`;
   };
 
-  // Get member name by ID
   const getMemberName = (userId: string) => {
     if (!group) return 'Unknown';
     const member = group.members.find(m => m.userId === userId);
     return member ? member.name : 'Unknown';
   };
 
-  // Format date
   const formatDate = (dateString: string) => {
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', { 
@@ -413,7 +382,6 @@ export default function ExpensesScreen() {
     });
   };
 
-  // Render expense item for FlatList
   const renderExpenseItem = ({ item }: { item: Expense }) => {
     return (
       <TouchableOpacity
@@ -442,7 +410,6 @@ export default function ExpensesScreen() {
     );
   };
 
-  // Render add expense modal
   const renderAddExpenseModal = () => {
     return (
       <Modal
@@ -570,7 +537,6 @@ export default function ExpensesScreen() {
     );
   };
 
-  // Render expense details modal
   const renderExpenseDetailsModal = () => {
     if (!selectedExpense) return null;
 
@@ -667,7 +633,6 @@ export default function ExpensesScreen() {
     );
   };
 
-  // Render settlement modal
   const renderSettlementModal = () => {
     return (
       <Modal
@@ -706,7 +671,6 @@ export default function ExpensesScreen() {
     );
   };
 
-  // Render balance summary item
   const renderSummaryItem = ({ item }: { item: ExpenseSummary }) => {
     const isCurrentUser = item.userId === currentUser.id;
     return (
@@ -734,7 +698,6 @@ export default function ExpensesScreen() {
     );
   };
 
-  // Main render
   return (
     <View style={styles.container}>
       {loading ? (

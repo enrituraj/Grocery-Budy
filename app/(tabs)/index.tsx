@@ -29,7 +29,6 @@ import {
   Timestamp
 } from 'firebase/firestore';
 
-// Define types
 interface GroceryItem {
   id: string;
   name: string;
@@ -49,7 +48,6 @@ interface GroceryList {
 }
 
 export default function Index() {
-  // State variables
   const [lists, setLists] = useState<GroceryList[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
@@ -69,7 +67,6 @@ export default function Index() {
   const [userId, setUserId] = useState<string | null>(null);
   const [isAuthenticated, setIsAuthenticated] = useState(false);
 
-  // Check authentication state on component mount
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user) => {
       if (user) {
@@ -78,7 +75,6 @@ export default function Index() {
       } else {
         setUserId(null);
         setIsAuthenticated(false);
-        // Redirect to login if not authenticated
         router.replace('./login');
       }
     });
@@ -86,14 +82,12 @@ export default function Index() {
     return () => unsubscribe();
   }, []);
 
-  // Load lists from Firestore when user is authenticated
   useEffect(() => {
     if (isAuthenticated && userId) {
       loadListsFromFirestore();
     }
   }, [isAuthenticated, userId]);
 
-  // Load lists from Firestore
   const loadListsFromFirestore = async () => {
     if (!userId) return;
     
@@ -126,7 +120,6 @@ export default function Index() {
     }
   };
 
-  // Create a new grocery list in Firestore
   const createList = async () => {
     if (!userId) {
       Alert.alert('Error', 'You must be logged in');
@@ -174,7 +167,6 @@ export default function Index() {
     }
   };
 
-  // Add item to selected list
   const addItemToList = async () => {
     if (!userId || !selectedList) return;
     
@@ -198,14 +190,12 @@ export default function Index() {
 
       const updatedItems = [...selectedList.items, newItemData];
       
-      // Update in Firestore
       const listRef = doc(db, 'users', userId, 'groceryLists', selectedList.id);
       await updateDoc(listRef, {
         items: updatedItems,
         updatedAt: timestamp
       });
 
-      // Update local state
       const updatedLists = lists.map(list => {
         if (list.id === selectedList.id) {
           return {
@@ -228,7 +218,6 @@ export default function Index() {
     }
   };
 
-  // Update an existing item
   const updateItem = async () => {
     if (!userId || !selectedList || !editItem) return;
 
@@ -240,14 +229,12 @@ export default function Index() {
         item.id === editItem.id ? editItem : item
       );
       
-      // Update in Firestore
       const listRef = doc(db, 'users', userId, 'groceryLists', selectedList.id);
       await updateDoc(listRef, {
         items: updatedItems,
         updatedAt: timestamp
       });
 
-      // Update local state
       const updatedLists = lists.map(list => {
         if (list.id === selectedList.id) {
           return {
@@ -271,7 +258,6 @@ export default function Index() {
     }
   };
 
-  // Toggle item completion status
   const toggleItemCompletion = async (itemId: string) => {
     if (!userId || !selectedList) return;
 
@@ -283,14 +269,12 @@ export default function Index() {
         item.id === itemId ? {...item, isCompleted: !item.isCompleted} : item
       );
       
-      // Update in Firestore
       const listRef = doc(db, 'users', userId, 'groceryLists', selectedList.id);
       await updateDoc(listRef, {
         items: updatedItems,
         updatedAt: timestamp
       });
 
-      // Update local state
       const updatedLists = lists.map(list => {
         if (list.id === selectedList.id) {
           return {
@@ -312,7 +296,6 @@ export default function Index() {
     }
   };
 
-  // Remove item from list
   const removeItem = async (itemId: string) => {
     if (!userId || !selectedList) return;
 
@@ -322,14 +305,12 @@ export default function Index() {
       
       const updatedItems = selectedList.items.filter(item => item.id !== itemId);
       
-      // Update in Firestore
       const listRef = doc(db, 'users', userId, 'groceryLists', selectedList.id);
       await updateDoc(listRef, {
         items: updatedItems,
         updatedAt: timestamp
       });
 
-      // Update local state
       const updatedLists = lists.map(list => {
         if (list.id === selectedList.id) {
           return {
@@ -351,7 +332,6 @@ export default function Index() {
     }
   };
 
-  // Delete list
   const deleteList = async (listId: string) => {
     if (!userId) return;
     
@@ -367,11 +347,9 @@ export default function Index() {
             try {
               setLoading(true);
               
-              // Delete from Firestore
               const listRef = doc(db, 'users', userId, 'groceryLists', listId);
               await deleteDoc(listRef);
 
-              // Update local state
               const updatedLists = lists.filter(list => list.id !== listId);
               setLists(updatedLists);
               setModalVisible(false);
@@ -388,12 +366,10 @@ export default function Index() {
     );
   };
 
-  // Share list (placeholder - in a real app this would generate a shareable link or code)
   const shareList = (listId: string) => {
     Alert.alert('Share List', 'Sharing functionality would be implemented soon.');
   };
 
-  // Render list item for FlatList
   const renderListItem = ({ item }: { item: GroceryList }) => {
     const completedItems = item.items.filter(item => item.isCompleted).length;
     const totalItems = item.items.length;
@@ -421,7 +397,6 @@ export default function Index() {
     );
   };
 
-  // Render a grocery item
   const renderGroceryItem = (item: GroceryItem) => {
     return (
       <View key={item.id} style={styles.groceryItem}>
@@ -474,11 +449,9 @@ export default function Index() {
     );
   };
 
-  // List details modal
   const renderListDetailsModal = () => {
     if (!selectedList) return null;
 
-    // Group items by category
     const groupedItems: {[key: string]: GroceryItem[]} = {};
     selectedList.items.forEach(item => {
       if (!groupedItems[item.category]) {
@@ -591,7 +564,6 @@ export default function Index() {
     );
   };
 
-  // Edit item modal
   const renderEditItemModal = () => {
     if (!editItem) return null;
 
@@ -659,7 +631,6 @@ export default function Index() {
     );
   };
 
-  // Create list modal
   const renderCreateListModal = () => {
     return (
       <Modal
@@ -718,18 +689,15 @@ export default function Index() {
     );
   };
 
-  // Handle logout
   const handleLogout = async () => {
     try {
       await auth.signOut();
-      // Router will automatically redirect to login due to auth state change
     } catch (error) {
       console.error('Failed to sign out:', error);
       Alert.alert('Error', 'Failed to sign out');
     }
   };
 
-  // Main render
   return (
     <View style={styles.container}>
       {loading && !lists.length ? (

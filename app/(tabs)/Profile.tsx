@@ -18,7 +18,6 @@ import { router } from 'expo-router';
 
 import * as Contacts from 'expo-contacts';
 
-// Define Contact interface
 interface Contact {
   id: string | undefined;
   name: string;
@@ -31,7 +30,6 @@ export default function ProfileScreen() {
   const [contacts, setContacts] = useState<Contact[]>([]);
   const [loading, setLoading] = useState(false);
   
-  // Load contacts if permission is granted
   const loadContacts = async () => {
     setLoading(true);
     try {
@@ -42,10 +40,8 @@ export default function ProfileScreen() {
         });
         
         if (data.length > 0) {
-          // Transform contacts data to our Contact interface
           const formattedContacts: Contact[] = data
             .filter(contact => contact.name && contact.phoneNumbers && contact.phoneNumbers.length > 0)
-            // .slice(0, 10) // Limit to 10 contacts for demo purposes
             .map(contact => ({
               id: contact.id,
               name: contact.name || 'Unknown',
@@ -72,7 +68,6 @@ export default function ProfileScreen() {
     }
   };
 
-  // Render contact item
   const renderContactItem = ({ item }: { item: Contact }) => (
     
     <View style={styles.contactItem}>
@@ -95,7 +90,6 @@ export default function ProfileScreen() {
       await signOut(auth);
 
       router.replace("/login");
-      // The layout component will handle the navigation to login screen
     } catch (error) {
       Alert.alert('Error', 'Failed to log out. Please try again.');
     }

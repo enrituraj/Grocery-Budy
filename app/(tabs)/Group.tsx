@@ -29,7 +29,6 @@ import {
   Timestamp
 } from 'firebase/firestore';
 import Chat from './../chat';
-// Define types
 interface Member {
   userId: string;
   name: string;
@@ -57,8 +56,7 @@ interface Contact {
 }
 
 export default function GroupScreen() {
-  // State variables
-  const [activeTab, setActiveTab] = useState('details'); // 'details' or 'chat'
+  const [activeTab, setActiveTab] = useState('details'); 
   const [groups, setGroups] = useState<Group[]>([]);
   const [loading, setLoading] = useState(true);
   const [modalVisible, setModalVisible] = useState(false);
@@ -78,7 +76,6 @@ export default function GroupScreen() {
   const [adminModalVisible, setAdminModalVisible] = useState(false);
   const [selectedMember, setSelectedMember] = useState<Member | null>(null);
 
-  // Current user from Firebase auth
   const user = auth.currentUser;
   const currentUser = {
     id: user?.uid || '',
@@ -87,14 +84,12 @@ export default function GroupScreen() {
     phone: user?.phoneNumber || ''
   };
 
-  // Load groups from Firestore on component mount
   useEffect(() => {
     if (user) {
       loadGroups();
     }
   }, [user]);
 
-  // Fetch user's contacts
   const getContacts = async () => {
     try {
       const { status } = await Contacts.requestPermissionsAsync();
@@ -107,10 +102,10 @@ export default function GroupScreen() {
           const formattedContacts: Contact[] = data
             .filter(contact => contact.name && (contact.emails?.length || contact.phoneNumbers?.length))
             .map(contact => ({
-              id: contact?.id || '', // Default to an empty string if undefined
+              id: contact?.id || '',  
               name: contact?.name,
-              email: contact?.emails && contact?.emails.length > 0 ? contact?.emails[0].email || '' : '', // Default to an empty string
-              phone: contact?.phoneNumbers && contact.phoneNumbers.length > 0 ? contact.phoneNumbers[0].number || '' : '' // Default to an empty string
+              email: contact?.emails && contact?.emails.length > 0 ? contact?.emails[0].email || '' : '',
+              phone: contact?.phoneNumbers && contact.phoneNumbers.length > 0 ? contact.phoneNumbers[0].number || '' : ''
             }));
           setContacts(formattedContacts);
         }
@@ -123,14 +118,12 @@ export default function GroupScreen() {
     }
   };
 
-  // Load groups from Firestore
   const loadGroups = async () => {
     if (!user?.email) return;
 
     try {
       setLoading(true);
 
-      // First, get groups where current user is a member
       const groupsCollectionRef = collection(db, 'groups');
       const q = query(
         groupsCollectionRef,
@@ -162,7 +155,6 @@ export default function GroupScreen() {
     }
   };
 
-  // Save group to Firestore
   const saveGroup = async (groupData: Group) => {
     try {
       const memberEmails = groupData.members.map(member => member.email);
@@ -172,7 +164,7 @@ export default function GroupScreen() {
         name: groupData.name,
         description: groupData.description,
         members: groupData.members,
-        memberEmails: memberEmails, // Array of member emails for querying
+        memberEmails: memberEmails,  
         createdBy: groupData.createdBy,
         createdAt: Timestamp.fromDate(new Date(groupData.createdAt)),
         updatedAt: Timestamp.fromDate(new Date(groupData.updatedAt))
@@ -186,7 +178,6 @@ export default function GroupScreen() {
     }
   };
 
-  // Create a new group
   const createGroup = async () => {
     if (!newGroup.name.trim()) {
       Alert.alert('Error', 'Group name is required');
@@ -226,7 +217,6 @@ export default function GroupScreen() {
     }
   };
 
-  // Add member to selected group
   const addMemberToGroup = async () => {
     if (!selectedGroup) return;
     if (!newMember.name.trim() || !newMember.email.trim()) {
@@ -234,7 +224,6 @@ export default function GroupScreen() {
       return;
     }
 
-    // Check if member with this email already exists
     const memberExists = selectedGroup.members.some(
       member => member.email.toLowerCase() === newMember.email.toLowerCase()
     );
@@ -246,7 +235,7 @@ export default function GroupScreen() {
 
     const timestamp = new Date().toISOString();
     const newMemberData: Member = {
-      userId: `temp-user-${Date.now()}`, // Temporary ID for non-app users
+      userId: `temp-user-${Date.now()}`, 
       name: newMember.name,
       email: newMember.email.toLowerCase(),
       phone: newMember.phone,
@@ -272,7 +261,6 @@ export default function GroupScreen() {
     }
   };
 
-  // Add contact as member
   const addContactAsMember = async (contact: Contact) => {
     if (!selectedGroup) return;
 
@@ -282,7 +270,6 @@ export default function GroupScreen() {
       phone: contact.phone || ''
     });
 
-    // If the email already exists in the group, show a warning
     if (contact.email) {
       const memberExists = selectedGroup.members.some(
         member => member.email.toLowerCase() === contact.email.toLowerCase()
@@ -329,11 +316,9 @@ export default function GroupScreen() {
     }
   };
 
-  // Toggle admin status
   const toggleAdminStatus = async (member: Member) => {
     if (!selectedGroup) return;
 
-    // Don't allow removing admin status if this is the only admin
     if (member.isAdmin && selectedGroup.members.filter(m => m.isAdmin).length === 1) {
       Alert.alert('Error', 'Cannot remove admin status - group must have at least one admin');
       return;
@@ -365,7 +350,6 @@ export default function GroupScreen() {
     }
   };
 
-  // Remove member from group
   const removeMember = async (groupId: string, userEmail: string) => {
     const group = groups.find(g => g.id === groupId);
     if (!group) return;
@@ -381,7 +365,6 @@ export default function GroupScreen() {
       return;
     }
 
-    // Don't allow removing the last admin
     if (member.isAdmin && group.members.filter(m => m.isAdmin).length === 1) {
       Alert.alert('Error', 'Cannot remove the only admin of the group');
       return;
@@ -405,7 +388,6 @@ export default function GroupScreen() {
     }
   };
 
-  // Leave group
   const leaveGroup = async (groupId: string) => {
     if (!user?.email) return;
 
@@ -423,16 +405,13 @@ export default function GroupScreen() {
 
             const timestamp = new Date().toISOString();
 
-            // Check if current user is an admin
             const currentMember = group.members.find(m => m.email === user.email);
             const isAdmin = currentMember?.isAdmin || false;
 
-            // Check if current user is the only admin
             const isOnlyAdmin = isAdmin &&
               group.members.filter(m => m.isAdmin).length === 1;
 
             if (isOnlyAdmin && group.members.length > 1) {
-              // Make another member an admin
               const newAdminIndex = group.members.findIndex(m => m.email !== user.email);
               if (newAdminIndex !== -1) {
                 const updatedMembers = [...group.members];
@@ -452,10 +431,8 @@ export default function GroupScreen() {
                 await saveGroup(updatedGroup);
               }
             } else if (group.members.length === 1) {
-              // If user is the only member, delete the group
               await deleteDoc(doc(db, 'groups', groupId));
             } else {
-              // Otherwise just remove the current user
               const updatedGroup = {
                 ...group,
                 members: group.members.filter(m => m.email !== user.email),
@@ -479,7 +456,6 @@ export default function GroupScreen() {
     );
   };
 
-  // Delete group
   const deleteGroup = async (groupId: string) => {
     Alert.alert(
       'Delete Group',
@@ -507,14 +483,12 @@ export default function GroupScreen() {
     );
   };
 
-  // Navigate to expenses screen
   const navigateToExpenses = (groupId: string) => {
     setModalVisible(false);
 
     router.push(`/expenses/${groupId}`);
   };
 
-  // Render group item for FlatList
   const renderGroupItem = ({ item }: { item: Group }) => {
     return (
       <TouchableOpacity
@@ -538,7 +512,6 @@ export default function GroupScreen() {
     );
   };
 
-  // Format date
   const formatDate = (dateString: string) => {
     try {
       const date = new Date(dateString);
@@ -548,7 +521,6 @@ export default function GroupScreen() {
     }
   };
 
-  // Group details modal
   const renderGroupDetailsModal = () => {
     if (!selectedGroup) return null;
 
@@ -738,7 +710,6 @@ export default function GroupScreen() {
     );
   };
 
-  // Create group modal
   const renderCreateGroupModal = () => {
     return (
       <Modal
@@ -797,7 +768,6 @@ export default function GroupScreen() {
     );
   };
 
-  // Contacts modal
   const renderContactsModal = () => {
     return (
       <Modal
@@ -842,7 +812,6 @@ export default function GroupScreen() {
     );
   };
 
-  // Admin management modal
   const renderAdminModal = () => {
     if (!selectedMember) return null;
 
@@ -897,7 +866,6 @@ export default function GroupScreen() {
     );
   };
 
-  // Authentication check
   if (!user) {
     return (
       <View style={[styles.container, { justifyContent: 'center', alignItems: 'center' }]}>
@@ -906,7 +874,6 @@ export default function GroupScreen() {
     );
   }
 
-  // Main render
   return (
     <View style={styles.container}>
       {loading ? (
@@ -1197,7 +1164,6 @@ const styles = StyleSheet.create({
   },
 
 
-  // Add to the styles object at the bottom of the file
   tabContainer: {
     backgroundColor: '#333940',
     flexDirection: 'row',

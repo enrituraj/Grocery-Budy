@@ -20,18 +20,15 @@ export default function EditProfileScreen() {
   const user = auth.currentUser;
   const [loading, setLoading] = useState(false);
   
-  // Form state
   const [name, setName] = useState(user?.displayName || '');
   const [email, setEmail] = useState(user?.email || '');
   const [password, setPassword] = useState('');
   const [showPasswordField, setShowPasswordField] = useState(false);
   
-  // Error states
   const [nameError, setNameError] = useState('');
   const [emailError, setEmailError] = useState('');
   const [passwordError, setPasswordError] = useState('');
 
-  // Check if any field has changed
   const hasChanges = () => {
     return (
       name !== (user?.displayName || '') ||
@@ -42,11 +39,9 @@ export default function EditProfileScreen() {
   const validateInputs = () => {
     let isValid = true;
     
-    // Reset errors
     setNameError('');
     setEmailError('');
     
-    // Validate name
     if (!name.trim()) {
       setNameError('Name is required');
       isValid = false;
@@ -83,11 +78,9 @@ export default function EditProfileScreen() {
         await updateProfile(user, { displayName: name });
       }
       
-      // Update email (requires recent authentication)
       if (email !== user.email) {
         if (showPasswordField && password) {
           try {
-            // Re-authenticate user before updating email
             const credential = EmailAuthProvider.credential(
               user.email || '',
               password
@@ -107,11 +100,7 @@ export default function EditProfileScreen() {
         }
       }
       
-      // Note: Updating phone number typically requires verification
-      // This is a placeholder - in a real app you would implement SMS verification
-      // const phoneProvider = new firebase.auth.PhoneAuthProvider();
-      // const verificationId = await phoneProvider.verifyPhoneNumber(phone, recaptchaVerifier);
-      
+    
       Alert.alert(
         'Success',
         'Profile updated successfully',
@@ -156,7 +145,6 @@ export default function EditProfileScreen() {
         </View>
         
         <View style={styles.formContainer}>
-          {/* Name Input */}
           <View style={styles.inputGroup}>
             <Text style={styles.inputLabel}>Name</Text>
             <TextInput
@@ -169,7 +157,6 @@ export default function EditProfileScreen() {
             {nameError ? <Text style={styles.errorText}>{nameError}</Text> : null}
           </View>
           
-          {/* Email Input */}
           <View style={styles.inputGroup}>
             <Text style={styles.inputLabel}>Email</Text>
             <TextInput
@@ -184,7 +171,6 @@ export default function EditProfileScreen() {
             {emailError ? <Text style={styles.errorText}>{emailError}</Text> : null}
           </View>
           
-          {/* Password Input (shown when changing email) */}
           {showPasswordField && (
             <View style={styles.inputGroup}>
               <Text style={styles.inputLabel}>Password</Text>

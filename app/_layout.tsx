@@ -1,4 +1,3 @@
-// app/_layout.tsx
 import { useEffect, useState } from 'react';
 import { Stack } from 'expo-router';
 import { onAuthStateChanged } from 'firebase/auth';
@@ -9,7 +8,6 @@ export default function RootLayout() {
   const [initializing, setInitializing] = useState(true);
   const [user, setUser] = useState(null);
 
-  // Handle user auth state changes
   useEffect(() => {
     const unsubscribe = onAuthStateChanged(auth, (user:any) => {
       console.log('User state changed:', user,typeof user);
@@ -17,11 +15,9 @@ export default function RootLayout() {
       if (initializing) setInitializing(false);
     });
 
-    // Unsubscribe on cleanup
     return unsubscribe;
   }, []);
 
-  // Show loading indicator while initializing
   if (initializing) {
     return (
       <View style={{ flex: 1, justifyContent: 'center', alignItems: 'center', backgroundColor: '#25292e' }}>
@@ -37,9 +33,7 @@ export default function RootLayout() {
         contentStyle: { backgroundColor: '#25292e' },
       }}
     >
-      {/* Define which screens to show based on authentication state */}
       {user ? (
-        // User is signed in
         <>
           <Stack.Screen
             name="(tabs)"
@@ -48,7 +42,6 @@ export default function RootLayout() {
           />
         </>
       ) : (
-        // User is not signed in
         <>
         <Stack.Screen
           name="login"
